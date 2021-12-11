@@ -13,10 +13,7 @@ from datarestorerapp.models import (
 class ShopUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShopUser
-        fields = (
-            'ip',
-            'country'
-        )
+        fields = '__all__'
 
 
 class ProductSerializer(serializers.ModelSerializer):

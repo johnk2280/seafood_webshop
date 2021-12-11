@@ -1,5 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser
 from rest_framework import generics, viewsets, mixins
 
 from datarestorerapp.models import (
@@ -25,6 +26,10 @@ class ShopUserViewSet(
     mixins.ListModelMixin,
     viewsets.GenericViewSet
 ):
+    """
+    List of shop users.
+    """
+
     serializer_class = ShopUserSerializer
     queryset = ShopUser.objects.all()
 
@@ -34,6 +39,9 @@ class ProductViewSet(
     mixins.ListModelMixin,
     viewsets.GenericViewSet
 ):
+    """
+    List of products.
+    """
     serializer_class = ProductSerializer
     queryset = Product.objects.all()
 
@@ -43,6 +51,10 @@ class ProductCategoryViewSet(
     mixins.ListModelMixin,
     viewsets.GenericViewSet
 ):
+    """
+    List of product categories.
+    """
+
     serializer_class = ProductCategorySerializer
     queryset = ProductCategory.objects.all()
 
@@ -52,6 +64,9 @@ class OrderViewSet(
     mixins.ListModelMixin,
     viewsets.GenericViewSet
 ):
+    """
+    Orders list.
+    """
     serializer_class = OrderSerializer
     queryset = Order.objects.all()
 
@@ -61,6 +76,9 @@ class OrderItemViewSet(
     mixins.ListModelMixin,
     viewsets.GenericViewSet
 ):
+    """
+    List of orders items.
+    """
     serializer_class = OrderItemSerializer
     queryset = OrderItem.objects.all()
 
@@ -70,11 +88,16 @@ class ShopUserActionViewSet(
     mixins.ListModelMixin,
     viewsets.GenericViewSet
 ):
+    """
+    List of shop user activity.
+    """
     serializer_class = ShopUserActionSerializer
     queryset = ShopUserAction.objects.all()
 
-# line_pattern = r"^" \
-#                r".*?(?P<date_time>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})" \
-#                r".*?(?P<ip>\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3})" \
-#                r".*?(?P<url>http.*)" \
-#                r"$"
+
+class LogfileUploadView(APIView):
+    parser_classes = (MultiPartParser, )
+
+    def post(self, request):
+        pass
+
