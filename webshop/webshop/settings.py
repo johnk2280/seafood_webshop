@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'datarestorerapp',
 
     'rest_framework',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
