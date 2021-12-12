@@ -68,9 +68,14 @@ class LogParser:
                     product_id = int(data['url_params'][key]['goods_id'][0])
                     amount = int(data['url_params'][key]['amount'][0])
                     order_id = int(data['url_params'][key]['cart_id'][0])
-
-                    # TODO: django.db.utils.IntegrityError: UNIQUE constraint failed: datarestorerapp_order.id
-                    order, _ = Order.objects.get_or_create(id=order_id, user=user, created_at=data['datetime'])
+                    order, _ = Order.objects.get_or_create(
+                        id=order_id,
+                        user=user,
+                        defaults={'created_at': data['datetime']}
+                    )
+                    if not _:
+                        order.updated_at = data['datetime']
+                        order.save()
 
                     item = OrderItem(order=order, product_id=product_id, amount=amount, created_at=data['datetime'])
                     item.save()
