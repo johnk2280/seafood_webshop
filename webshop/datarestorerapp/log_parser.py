@@ -1,6 +1,6 @@
 import re
 from datetime import datetime
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs, parse_qsl
 
 from django.contrib.gis.geoip2 import GeoIP2
 
@@ -22,8 +22,13 @@ class LogParser:
                    r"$"
     URL_KEY_PATTERN = r'^\/(?P<key>[a-zA-Z_]+)'
     CAT_PROD_PATTEN = r'[a-zA-Z_]+'
-    ACTIONS = {
-
+    USER_ACTIONS = {
+        'product': 'product viewing',
+        'category': 'category viewing',
+        'main': 'main viewing',
+        'cart': 'add item to order',
+        'pay': 'order viewing',
+        'success_pay_': 'payed',
     }
 
     def __init__(self, file_path):
@@ -41,17 +46,42 @@ class LogParser:
 
         return content
 
-    def fill_db(self, lines: list) -> dict:
+    def fill_db(self, lines: list) -> None:
         for line in lines:
+            key = 'main'
             data = self._parse(line)
+            if not data['url_params']:
+                if data['category']:
+                    key = 'category'
+                    category, category_is_created = ProductCategory.objects.get_or_create(
+                        name=data['category']
+                    )
+
+                    if data['product']:
+                        key = 'product'
+                        product, product_is_created = Product.objects.get_or_create(
+                            category=category,
+                            name=data['product']
+                        )
+            else:
+                key = data['url_params'].keys()[0]
+                action = self.USER_ACTIONS[key]
+                if key == 'cart':
+                    print(1)
+
+            user, user_is_created = ShopUser.objects.get_or_create(ip=data['ip'], country=data['country'])
+            user_action = ShopUserAction(user=user, action=self.USER_ACTIONS[key], created_at=data['datetime'])
+
             print(1)
 
     def _parse(self, line: str) -> dict:
         url_params = {}
         category, product = None, None
+
         date_time, ip, url = self.line_pattern.findall(line)[0]
         url_obj = urlparse(url)
         url_parts = url_obj.path.replace('/', ' ').split()
+
         if url_parts:
             key = self.url_key_pattern.findall(url_obj.path)[0]
             if key not in ['cart', 'pay', 'success_pay_']:
@@ -65,7 +95,7 @@ class LogParser:
             'country': self._get_user_country(ip),
             'category': category,
             'product': product,
-            'url_params': url_params
+            'url_params': url_params,
         }
 
     def _add_item(self, date_time: datetime = None, ip: str = None, **kwargs) -> None:
@@ -79,9 +109,6 @@ class LogParser:
 
     def _get_datetime(self, date_time: str) -> datetime:
         return datetime.strptime(date_time, '%Y-%m-%d %H:%M:%S')
-
-    def _get_data(self, lines: list) -> dict:
-        pass
 
     def save(self) -> None:
         content = self._reader(self.file_path)
