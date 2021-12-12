@@ -53,26 +53,20 @@ class LogParser:
             if not data['url_params']:
                 if data['category']:
                     key = 'category'
-                    category, category_is_created = ProductCategory.objects.get_or_create(
-                        name=data['category']
-                    )
+                    category, _ = ProductCategory.objects.get_or_create(name=data['category'])
 
                     if data['product']:
                         key = 'product'
-                        product, product_is_created = Product.objects.get_or_create(
-                            category=category,
-                            name=data['product']
-                        )
+                        product, _ = Product.objects.get_or_create(category=category, name=data['product'])
             else:
                 key = data['url_params'].keys()[0]
-                action = self.USER_ACTIONS[key]
                 if key == 'cart':
+
                     print(1)
 
-            user, user_is_created = ShopUser.objects.get_or_create(ip=data['ip'], country=data['country'])
+            user, _ = ShopUser.objects.get_or_create(ip=data['ip'], country=data['country'])
             user_action = ShopUserAction(user=user, action=self.USER_ACTIONS[key], created_at=data['datetime'])
-
-            print(1)
+            user_action.save()
 
     def _parse(self, line: str) -> dict:
         url_params = {}
@@ -80,7 +74,7 @@ class LogParser:
 
         date_time, ip, url = self.line_pattern.findall(line)[0]
         url_obj = urlparse(url)
-        url_parts = url_obj.path.replace('/', ' ').split()
+        url_parts = tuple(url_obj.path.replace('/', ' ').split())
 
         if url_parts:
             key = self.url_key_pattern.findall(url_obj.path)[0]
