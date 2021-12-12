@@ -2,7 +2,9 @@ import re
 from datetime import datetime
 from urllib.parse import urlparse, parse_qs, parse_qsl
 
-from django.contrib.gis.geoip2 import GeoIP2
+from django.contrib.gis.geoip2 import GeoIP2, GeoIP2Exception
+from geoip2.errors import AddressNotFoundError
+
 
 from datarestorerapp.models import (
     ShopUser,
@@ -67,13 +69,15 @@ class LogParser:
                     amount = int(data['url_params'][key]['amount'][0])
                     order_id = int(data['url_params'][key]['cart_id'][0])
 
+                    # TODO: django.db.utils.IntegrityError: UNIQUE constraint failed: datarestorerapp_order.id
                     order, _ = Order.objects.get_or_create(id=order_id, user=user, created_at=data['datetime'])
+
                     item = OrderItem(order=order, product_id=product_id, amount=amount, created_at=data['datetime'])
                     item.save()
 
                 if key == 'success_pay_':
-                    order_id = data['success_pay_id']
-                    order = Order.objects.get(id=order_id)
+                    order_id = data['success_pay_']
+                    order = Order.objects.filter(id=order_id).get()
                     order.is_paid = True
                     order.save()
 
@@ -89,15 +93,18 @@ class LogParser:
 
         date_time, ip, url = self.line_pattern.findall(line)[0]
         url_obj = urlparse(url)
-        url_parts = tuple(url_obj.path.replace('/', ' ').split())
+        url_parts = url_obj.path.replace('/', ' ').split()
 
         if url_parts:
             key = self.url_key_pattern.findall(url_obj.path)[0]
             if key not in ['cart', 'pay', 'success_pay_']:
-                category, product = url_parts if len(url_parts) == 2 else url_parts[0], None
-                success_pay_id = int(url_obj.path[12:]) if key == 'success_pay_' else None
+                try:
+                    category, product = url_parts
+                except ValueError:
+                    category = url_parts[0]
             else:
                 url_params[key] = parse_qs(url_obj.query)
+                success_pay_id = int(url_obj.path[13:-1]) if key == 'success_pay_' else None
 
         return {
             'ip': ip,
@@ -109,18 +116,15 @@ class LogParser:
             'url_params': url_params,
         }
 
-    def _add_item(self, date_time: datetime = None, ip: str = None, **kwargs) -> None:
-        print(1)
-
-    def _update_payment_status(self):
-        pass
-
     def _get_user_country(self, ip: str) -> str:
-        return self.geo_obj.country_name(ip)
+        try:
+            return self.geo_obj.country_name(ip)
+        except (GeoIP2Exception, AddressNotFoundError) as errors:
+            return f'The address {ip} is not in the database.'
 
     def _get_datetime(self, date_time: str) -> datetime:
         return datetime.strptime(date_time, '%Y-%m-%d %H:%M:%S')
 
     def save(self) -> None:
         content = self._reader(self.file_path)
-        data = self.fill_db(content)
+        self.fill_db(content)
