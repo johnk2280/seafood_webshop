@@ -99,7 +99,7 @@ class ShopUserActionViewSet(
 class LogfileUploadView(APIView):
     parser_classes = (MultiPartParser, FileUploadParser,)
 
-    def post(self, request):
+    def post(self, request) -> Response:
         # TODO: покрыть тестами, обработать исключения
 
         parser = LogParser(request.data.get('text').temporary_file_path())
