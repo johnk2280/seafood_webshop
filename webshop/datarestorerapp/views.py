@@ -1,8 +1,9 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.parsers import MultiPartParser
+from rest_framework.parsers import MultiPartParser, FileUploadParser
 from rest_framework import generics, viewsets, mixins
 
+from datarestorerapp.log_parser import LogParser
 from datarestorerapp.models import (
     ShopUser,
     Product,
@@ -96,8 +97,11 @@ class ShopUserActionViewSet(
 
 
 class LogfileUploadView(APIView):
-    parser_classes = (MultiPartParser, )
+    parser_classes = (MultiPartParser, FileUploadParser,)
 
     def post(self, request):
-        pass
+        # TODO: покрыть тестами, обработать исключения
 
+        parser = LogParser(request.data.get('text').temporary_file_path())
+        parser.save()
+        return Response('ok')
