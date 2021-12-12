@@ -24,9 +24,5 @@ router.register(r'shop_user_actions', ShopUserActionViewSet, basename='shop_user
 urlpatterns = [
     path('', include(router.urls)),
     path('log_file_upload/', LogfileUploadView.as_view(), name='log_file_upload'),
-    # path('shop_users/', ShopUserListView.as_view(), name='shop_users'),
-    # path('products/'),
-    # path('product_categories/'),
-    # path('orders/'),
-    # path('order_items/'),
+
 ]

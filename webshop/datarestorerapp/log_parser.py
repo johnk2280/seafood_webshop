@@ -17,12 +17,18 @@ class LogParser:
     def __init__(self, file_path):
         self.file_path = file_path
         self.line_pattern = re.compile(self.LINE_PATTERN)
+        self._reader(file_path)
 
     def _reader(self, file_path: str) -> list:
-        pass
+        result = []
+        with open(file_path, 'r', encoding='utf-8') as f_obj:
+            content = f_obj.readlines()
+            data = self._parse(content)
+            print(1)
 
-    def _parse(self, line: str) -> list:
-        pass
+    def _parse(self, lines: list) -> dict:
+        for line in lines:
+            print(self.line_pattern.findall(line))
 
     def _get_user_country(self, ip: str) -> str:
         pass
