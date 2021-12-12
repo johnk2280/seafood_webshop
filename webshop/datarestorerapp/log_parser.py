@@ -50,6 +50,8 @@ class LogParser:
         for line in lines:
             key = 'main'
             data = self._parse(line)
+            user, _ = ShopUser.objects.get_or_create(ip=data['ip'], country=data['country'])
+
             if not data['url_params']:
                 if data['category']:
                     key = 'category'
@@ -59,18 +61,31 @@ class LogParser:
                         key = 'product'
                         product, _ = Product.objects.get_or_create(category=category, name=data['product'])
             else:
-                key = data['url_params'].keys()[0]
+                key = list(data['url_params'].keys())[0]
                 if key == 'cart':
+                    product_id = int(data['url_params'][key]['goods_id'][0])
+                    amount = int(data['url_params'][key]['amount'][0])
+                    order_id = int(data['url_params'][key]['cart_id'][0])
+
+                    order, _ = Order.objects.get_or_create(id=order_id, user=user, created_at=data['datetime'])
+                    item = OrderItem(order=order, product_id=product_id, amount=amount, created_at=data['datetime'])
+                    item.save()
+
+                if key == 'success_pay_':
+                    order_id = data['success_pay_id']
+                    order = Order.objects.get(id=order_id)
+                    order.is_paid = True
+                    order.save()
 
                     print(1)
 
-            user, _ = ShopUser.objects.get_or_create(ip=data['ip'], country=data['country'])
             user_action = ShopUserAction(user=user, action=self.USER_ACTIONS[key], created_at=data['datetime'])
             user_action.save()
 
     def _parse(self, line: str) -> dict:
         url_params = {}
         category, product = None, None
+        success_pay_id = None
 
         date_time, ip, url = self.line_pattern.findall(line)[0]
         url_obj = urlparse(url)
@@ -80,6 +95,7 @@ class LogParser:
             key = self.url_key_pattern.findall(url_obj.path)[0]
             if key not in ['cart', 'pay', 'success_pay_']:
                 category, product = url_parts if len(url_parts) == 2 else url_parts[0], None
+                success_pay_id = int(url_obj.path[12:]) if key == 'success_pay_' else None
             else:
                 url_params[key] = parse_qs(url_obj.query)
 
@@ -89,6 +105,7 @@ class LogParser:
             'country': self._get_user_country(ip),
             'category': category,
             'product': product,
+            'success_pay_': success_pay_id,
             'url_params': url_params,
         }
 

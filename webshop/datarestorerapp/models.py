@@ -85,10 +85,11 @@ class Order(models.Model):
     )
     updated_at = models.DateTimeField(
         verbose_name='обновлен',
+        null=True
     )
 
     def __str__(self):
-        return self.id
+        return f'{self.id}'
 
     class Meta:
         verbose_name = 'order'
