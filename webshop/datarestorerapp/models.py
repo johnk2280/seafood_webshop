@@ -96,15 +96,13 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
-    order_id = models.ForeignKey(
+    order = models.ForeignKey(
         Order,
         verbose_name='заказ',
         on_delete=models.CASCADE,
     )
-    product = models.ForeignKey(
-        Product,
-        verbose_name='название продукта',
-        on_delete=models.CASCADE,
+    product_id = models.PositiveIntegerField(
+        verbose_name='id товара'
     )
     amount = models.PositiveIntegerField(
         verbose_name='количество',
@@ -115,7 +113,7 @@ class OrderItem(models.Model):
     )
 
     def __str__(self):
-        return f'{self.order_id} - product: {self.product}, quantity: {self.amount}'
+        return f'{self.order} - product: {self.product}, quantity: {self.amount}'
 
     class Meta:
         verbose_name = 'order item'

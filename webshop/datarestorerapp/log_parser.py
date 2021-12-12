@@ -41,47 +41,32 @@ class LogParser:
 
         return content
 
-    def _parse(self, lines: list) -> dict:
+    def fill_db(self, lines: list) -> dict:
         for line in lines:
-            date_time, ip, url = self.line_pattern.findall(line)[0]
-            date_time_obj = self._get_datetime(date_time)
-            country = self._get_user_country(ip)
-            url_obj = urlparse(url)
-            url_params = parse_qs(url_obj.query)
+            data = self._parse(line)
+            print(1)
 
-            if url_obj.path.strip('/'):
-                key = self.url_key_pattern.findall(url_obj.path)[0]
-                if key not in ['cart', 'pay', 'success_pay_']:
-                    cat, prod = url_obj.path.strip('/').split('/')
-                    user = ShopUser(
-                        ip=ip,
-                        country=country
-                    )
-                    category = Product(
-                        name=cat
-                    )
-                    product = Product(
-                        category=category,
-                        name=prod,
-                    )
-                    user_action = ShopUserAction(
-                        user=user,
-                        action='',
-                        created_at=date_time_obj
-                    )
+    def _parse(self, line: str) -> dict:
+        url_params = {}
+        category, product = None, None
+        date_time, ip, url = self.line_pattern.findall(line)[0]
+        url_obj = urlparse(url)
+        url_parts = url_obj.path.replace('/', ' ').split()
+        if url_parts:
+            key = self.url_key_pattern.findall(url_obj.path)[0]
+            if key not in ['cart', 'pay', 'success_pay_']:
+                category, product = url_parts if len(url_parts) == 2 else url_parts[0], None
+            else:
+                url_params[key] = parse_qs(url_obj.query)
 
-
-    # def _parse_url(self, url: str) -> list:
-    #     url_obj = urlparse(url)
-    #     url_obj_path = url_obj.path
-    #     url_params = parse_qs(url_obj.query)
-    #     key = self.url_key_pattern.findall(url_obj.path)
-    #     try:
-    #         self.method_mapper[key]()
-    #     except KeyError:
-    #         pass
-    #
-    #     print(1)
+        return {
+            'ip': ip,
+            'datetime': self._get_datetime(date_time),
+            'country': self._get_user_country(ip),
+            'category': category,
+            'product': product,
+            'url_params': url_params
+        }
 
     def _add_item(self, date_time: datetime = None, ip: str = None, **kwargs) -> None:
         print(1)
@@ -100,4 +85,4 @@ class LogParser:
 
     def save(self) -> None:
         content = self._reader(self.file_path)
-        data = self._parse(content)
+        data = self.fill_db(content)
