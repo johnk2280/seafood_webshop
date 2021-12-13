@@ -93,15 +93,16 @@ class ShopUserActionViewSet(
     List of shop user activity.
     """
     serializer_class = ShopUserActionSerializer
-    queryset = ShopUserAction.objects.all()
+    queryset = ShopUserAction.objects.all().order_by('-id')[:1000]
 
 
 class LogfileUploadView(APIView):
+    """
+    File upload view.
+    """
     parser_classes = (MultiPartParser, FileUploadParser,)
 
     def post(self, request) -> Response:
-        # TODO: покрыть тестами, обработать исключения
-
         parser = LogParser(request.data.get('text').temporary_file_path())
         parser.save()
         return Response('ok')

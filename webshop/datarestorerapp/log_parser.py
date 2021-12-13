@@ -1,11 +1,10 @@
 import re
+import socket
 from datetime import datetime
 from urllib.parse import urlparse, parse_qs
-import socket
 
 from django.contrib.gis.geoip2 import GeoIP2, GeoIP2Exception
 from geoip2.errors import AddressNotFoundError
-
 
 from datarestorerapp.models import (
     ShopUser,
@@ -22,7 +21,6 @@ class LogParser:
                    r'.*?(?P<ip>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' \
                    r'.*?(?P<url>http.*)$'
     URL_KEY_PATTERN = r'^\/(?P<key>[a-zA-Z_]+)'
-    CAT_PROD_PATTEN = r'[a-zA-Z_]+'
     USER_ACTIONS = {
         'product': 'product viewing',
         'category': 'category viewing',
@@ -36,10 +34,7 @@ class LogParser:
         self.file_path = file_path
         self.line_pattern = re.compile(self.LINE_PATTERN)
         self.url_key_pattern = re.compile(self.URL_KEY_PATTERN)
-        self.cat_prod_pattern = re.compile(self.CAT_PROD_PATTEN)
         self.geo_obj = GeoIP2()
-
-        self.save()
 
     def _reader(self, file_path: str) -> list:
         with open(file_path, 'r', encoding='utf-8') as f_obj:
@@ -92,7 +87,11 @@ class LogParser:
                     order.updated_at = data['datetime']
                     order.save()
 
-            user_action = ShopUserAction(user=user, action=self.USER_ACTIONS[action], created_at=data['datetime'])
+            user_action = ShopUserAction(
+                user=user,
+                action=self.USER_ACTIONS[action],
+                created_at=data['datetime']
+            )
             user_action.save()
 
             data.clear()
