@@ -11,6 +11,7 @@ class ShopUser(models.Model):
     country = models.CharField(
         verbose_name='страна',
         max_length=128,
+        null=True
     )
 
     def __str__(self):
