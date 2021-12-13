@@ -45,6 +45,7 @@ class LogParser:
     def fill_db(self, lines: list) -> None:
         for line in lines:
             action = 'main'
+            category = None
             data = self._parse(line)
             user, _ = ShopUser.objects.get_or_create(ip=data['ip'], country=data['country'])
 
@@ -89,6 +90,7 @@ class LogParser:
 
             user_action = ShopUserAction(
                 user=user,
+                category=category,
                 action=self.USER_ACTIONS[action],
                 created_at=data['datetime']
             )

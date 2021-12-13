@@ -128,6 +128,12 @@ class ShopUserAction(models.Model):
         verbose_name='ip адрес',
         on_delete=models.CASCADE,
     )
+    category = models.ForeignKey(
+        ProductCategory,
+        verbose_name='категория',
+        on_delete=models.CASCADE,
+        null=True,
+    )
     action = models.CharField(
         verbose_name='действие пользователя',
         max_length=32,

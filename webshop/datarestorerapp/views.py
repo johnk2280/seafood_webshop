@@ -106,3 +106,12 @@ class LogfileUploadView(APIView):
         parser = LogParser(request.data.get('text').temporary_file_path())
         parser.save()
         return Response('ok')
+
+
+class TaskOneView(APIView):
+    """
+    1. Посетители из какой страны чаще всего посещают сайт
+    """
+
+    def get(self, request):
+        pass
