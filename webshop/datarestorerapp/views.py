@@ -114,7 +114,12 @@ class LogfileUploadView(APIView):
     def post(self, request) -> Response:
         parser = LogParser(request.data.get('text').temporary_file_path())
         parser.save()
-        return Response('ok')
+        return Response(
+            {
+                'status': 'ok',
+                'message': 'logfile uploaded'
+            }
+        )
 
 
 class TaskOneView(APIView):

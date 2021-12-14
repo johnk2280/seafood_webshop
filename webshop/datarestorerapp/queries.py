@@ -215,14 +215,3 @@ def get_regular_customer():
         )
 
         return cursor.fetchall()
-
-
-if __name__ == '__main__':
-    # print(*get_country_by_users(), sep='\n')
-    # print(*get_country_by_category(), sep='\n')
-    # print(*get_unpaid_baskets_quantity(), sep='\n')
-    # print(*get_regular_customer(), sep='\n')
-    # print(*get_time_of_day_by_category(), sep='\n')
-    # print(*get_max_number_of_requests_per_hour(), sep='\n')
-    # print(*get_other_frequently_ordered_items(), sep='\n')
-    pass
