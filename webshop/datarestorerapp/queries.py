@@ -20,7 +20,7 @@ def get_country_by_users() -> list:
             JOIN datarestorerapp_shopuser ds2
             ON ds.user_id = ds2.id
             GROUP BY ds2.country
-            ORDER BY COUNT(ds2.country) DESC
+            ORDER BY COUNT(ds2.country) DESC LIMIT 1
             """
         )
 
@@ -116,7 +116,7 @@ def get_max_number_of_requests_per_hour():
         return cursor.fetchall()
 
 
-def get_other_frequently_ordered_items():
+def get_other_frequently_ordered_items(category='semi_manufactures'):
     """
     5. Товары из какой категории чаще всего покупают совместно с товаром из
     категории “semi_manufactures”?
@@ -127,7 +127,7 @@ def get_other_frequently_ordered_items():
         cursor = connection.cursor()
 
         cursor.execute(
-            """
+            f"""
             SELECT 
                 category_id, 
                 COUNT() as cnt 
@@ -139,20 +139,16 @@ def get_other_frequently_ordered_items():
                 WHERE order_id in (
                     SELECT 
                         order_id 
-                    FROM (
+                    FROM datarestorerapp_orderitem do 
+                    WHERE product_id in (
                         SELECT 
-                            order_id 
-                        FROM datarestorerapp_orderitem do 
-                        WHERE product_id in (
+                            id 
+                        FROM datarestorerapp_product dp2 
+                        WHERE category_id = (
                             SELECT 
                                 id 
-                            FROM datarestorerapp_product dp2 
-                            WHERE category_id = (
-                                SELECT 
-                                    id 
-                                FROM datarestorerapp_productcategory dp 
-                                WHERE name = 'semi_manufactures'
-                            )
+                            FROM datarestorerapp_productcategory dp 
+                            WHERE name = '{category}'
                         )
                     )
                 )
@@ -164,7 +160,7 @@ def get_other_frequently_ordered_items():
                         SELECT 
                             id 
                         FROM datarestorerapp_productcategory dp 
-                        WHERE name != 'semi_manufactures'
+                        WHERE name != '{category}'
                     )
                 )
                 GROUP BY product_id
@@ -221,10 +217,12 @@ def get_regular_customer():
         return cursor.fetchall()
 
 
-# print(*get_country_by_users(), sep='\n')
-# print(*get_country_by_category(), sep='\n')
-# print(*get_unpaid_baskets_quantity(), sep='\n')
-# print(*get_regular_customer(), sep='\n')
-# print(*get_time_of_day_by_category(), sep='\n')
-# print(*get_max_number_of_requests_per_hour(), sep='\n')
-# print(*get_other_frequently_ordered_items(), sep='\n')
+if __name__ == '__main__':
+    # print(*get_country_by_users(), sep='\n')
+    # print(*get_country_by_category(), sep='\n')
+    # print(*get_unpaid_baskets_quantity(), sep='\n')
+    # print(*get_regular_customer(), sep='\n')
+    # print(*get_time_of_day_by_category(), sep='\n')
+    # print(*get_max_number_of_requests_per_hour(), sep='\n')
+    # print(*get_other_frequently_ordered_items(), sep='\n')
+    pass
