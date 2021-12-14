@@ -54,7 +54,7 @@
 
 7. Создать и выполнить миграции заново:
 
-         $ python manage.py makemigratons
+         $ python manage.py makemigrations
 
          $ python manage.py migrate
 8. Создайте суперпользователя:
